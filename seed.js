@@ -53,11 +53,21 @@ for(location of loc){
     lat = location.geometry.coordinates[1],
     name=location.name,
     description=location.description;
-    db.query('INSERT INTO locations(lon,lat,name,description,id) VALUES(?,?,?,?,?)',
-    [lon,lat,name,description,uuidv4()],(err,result)=>{
+    const id = uuidv4();
+    db.query('INSERT INTO locations(name,description,id) VALUES(?,?,?)',
+    [name,description,id],(err,result)=>{
         if(err){
             console.log(err);
         }
         console.log(result);
+    })
+    db.query('INSERT INTO coordinates(lon,lat,id) VALUES(?,?,?)',
+    [lon,lat,id],(err,result)=>{
+        if(err){
+            console.log(err);
+        }
+        else{
+            console.log(result);
+        }
     })
 }

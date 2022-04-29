@@ -52,7 +52,7 @@ const db = mysql.createConnection({
 });
 app.post('/register',(req,res)=>{
     const {email:username,password} = req.body.user;
-    console.log(username,password);
+    // console.log(username,password);
     db.query('SELECT * FROM user WHERE username=?;',
     [username],
     (err,result)=>{
@@ -114,21 +114,36 @@ app.post('/login',(req,res)=>{
 app.post('/add/locations',(req,res)=>{
     const {location,description,geometry}  = req.body;
     const {coordinates} = geometry;
-    const lon = coordinates[1],lat=coordinates[0];
-    db.query('INSERT INTO locations(lat,lon,name,description) VALUES(?,?,?,?)',
-    [lat,lon,location,description],
+    const lon = coordinates[1],lat=coordinates[0],id=uuidv4();
+    let f=1;
+    db.query('INSERT INTO locations(name,description,id) VALUES(?,?,?)',
+    [location,description,id],
     (err,result)=>{
         if(result){
-            res.send({authenticated:true,msg:'data added'});
         }
         else{
-            res.send({authenticated:false,msg:'data not added'});
+            f=0;
         }
-    });
+    })
+    db.query('INSERT INTO coordinates(lon,lat,id) VALUES(?,?,?)',
+    [lon,lat,id],
+    (err,result)=>{
+        if(result){
+        }
+        else{
+            f=0;
+        }
+    })
+    if(f){
+        res.send({authenticated:true,msg:'data successfully added'});
+    }
+    else{
+        res.send({authenticated:false,msg:'data not added'});
+    }
 })
 app.post('/getLocs',(req,res)=>{
     let locs=[];
-    db.query('SELECT * FROM locations',
+    db.query('SELECT * FROM locations natural join coordinates',
     (err,locations)=>{
         if(locations){
             for(location of locations){
@@ -151,7 +166,7 @@ app.post('/getLocs',(req,res)=>{
 
 app.post('/getLoc',(req,res)=>{
     const {id} = req.body;
-    db.query('SELECT * FROM locations where id = ?',
+    db.query('SELECT * FROM locations natural join coordinates where id = ?',
         [id],
         (err,location)=>{
             if(err)
@@ -172,6 +187,43 @@ app.post('/getLoc',(req,res)=>{
                 res.send({authenticated:false,msg:'Invalid ID'});
             }
         })
+})
+
+app.post('/getRating',(req,res)=>{
+    const {id} = req.body;
+    let ratingsArray = [];
+    db.query('SELECT * FROM ratings where locID = ?',
+    [id],
+    (err,ratings)=>{
+        if(err)
+            console.log(err);
+        for(let r1 of ratings){
+            const r = {
+                rating: r1.rating,
+                username: r1.username,
+                desc: r1.ratingDesc
+            }
+            ratingsArray.push(r);
+        }
+        res.send(ratingsArray);
+    });
+    
+})
+
+app.post('/add/rating',(req,res)=>{
+    const {rating,desc,user,id} = req.body.netRating;
+    console.log(rating,desc,user,id);
+    db.query('insert into ratings(rating,username,ratingDesc,locID) values(?,?,?,?)',
+    [rating,user,desc,id],
+    (err,result)=>{
+        if(err){
+            console.log(err);
+        }
+        if(result){
+            res.send({authenticated:true})
+        }
+    })
+
 })
 
 app.get('/getUser',(req,res)=>{
