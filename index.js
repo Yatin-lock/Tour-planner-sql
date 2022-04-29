@@ -135,7 +135,7 @@ app.post('/add/locations',(req,res)=>{
         }
     })
     if(f){
-        res.send({authenticated:true,msg:'data successfully added'});
+        res.send({authenticated:true,id:id});
     }
     else{
         res.send({authenticated:false,msg:'data not added'});
