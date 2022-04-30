@@ -54,8 +54,8 @@ for(location of loc){
     name=location.name,
     description=location.description;
     const id = uuidv4();
-    db.query('INSERT INTO locations(name,description,id) VALUES(?,?,?)',
-    [name,description,id],(err,result)=>{
+    db.query('INSERT INTO locations(name,description,id,user) VALUES(?,?,?,?)',
+    [name,description,id,'test'],(err,result)=>{
         if(err){
             console.log(err);
         }

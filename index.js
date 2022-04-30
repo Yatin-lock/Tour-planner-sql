@@ -112,14 +112,15 @@ app.post('/login',(req,res)=>{
     })
 })
 app.post('/add/locations',(req,res)=>{
-    const {location,description,geometry}  = req.body;
+    const {location,description,geometry,user}  = req.body;
     const {coordinates} = geometry;
     const lon = coordinates[1],lat=coordinates[0],id=uuidv4();
     let f=1;
-    db.query('INSERT INTO locations(name,description,id) VALUES(?,?,?)',
-    [location,description,id],
+    db.query('INSERT INTO locations(name,description,id,user) VALUES(?,?,?,?)',
+    [location,description,id,user],
     (err,result)=>{
         if(result){
+            console.log(result);
         }
         else{
             f=0;
@@ -171,7 +172,7 @@ app.post('/getLoc',(req,res)=>{
         (err,location)=>{
             if(err)
                 console.log(err);
-            if(location){
+            if(location[0]){
                 const loc={
                     name:location[0].name,
                     geometry:{
@@ -179,7 +180,8 @@ app.post('/getLoc',(req,res)=>{
                         coordinates:[location[0].lon,location[0].lat]
                     },
                     description: location[0].description,
-                    id:location[0].id
+                    id:location[0].id,
+                    user:location[0].user
                 }
                 res.send({authenticated:true,data:{loc}});
             }
@@ -231,6 +233,10 @@ app.get('/getUser',(req,res)=>{
         res.send({loggedIn:true,user:req.session.user});
     else res.send({loggedIn:false});
     console.log(req.session.user);
+})
+
+app.post('/logout',(req,res)=>{
+    req.session.user=undefined;
 })
 
 const port = 4000;
