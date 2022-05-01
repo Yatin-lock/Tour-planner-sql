@@ -167,12 +167,14 @@ app.post('/getLocs',(req,res)=>{
 
 app.post('/getLoc',(req,res)=>{
     const {id} = req.body;
-    db.query('SELECT * FROM locations natural join coordinates where id = ?',
+    console.log(id);
+    db.query('with t as ( select * from locations natural join coordinates) select *,t.id as id from t left outer join images on t.id = images.id where t.id = ?',
         [id],
         (err,location)=>{
             if(err)
                 console.log(err);
             if(location[0]){
+                console.log(location);
                 const loc={
                     name:location[0].name,
                     geometry:{
@@ -181,7 +183,8 @@ app.post('/getLoc',(req,res)=>{
                     },
                     description: location[0].description,
                     id:location[0].id,
-                    user:location[0].user
+                    user:location[0].user,
+                    url: location[0].url
                 }
                 res.send({authenticated:true,data:{loc}});
             }
@@ -225,6 +228,21 @@ app.post('/add/rating',(req,res)=>{
             res.send({authenticated:true})
         }
     })
+})
+
+app.post('/add/image',(req,res)=>{
+    const {id,url} = req.body;
+    console.log(id,url);
+    db.query('insert into images(id,url) values(?,?)',
+    [id,url],
+    (err,result)=>{
+        if(err){
+            console.log(err);
+        }
+        if(result){
+            res.send({authenticated:true})
+        }
+    })
 
 })
 
@@ -237,6 +255,8 @@ app.get('/getUser',(req,res)=>{
 
 app.post('/logout',(req,res)=>{
     req.session.user=undefined;
+    console.log(req.session.user);
+    res.send({authenticated:true});
 })
 
 const port = 4000;
